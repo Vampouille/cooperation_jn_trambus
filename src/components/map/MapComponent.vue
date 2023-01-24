@@ -60,11 +60,9 @@ import {
 import { viewList } from '@/model/views.model'
 import { lineStringsFromTraveltimes } from '@/helpers/traveltimesHelper'
 import { apiClientService } from '@/services/api.client'
-import {
-  getFeatureByAttribute,
-  filterFeaturesByAttribute,
-} from '@/helpers/layerHelper'
+import { getFeatureByAttribute } from '@/helpers/layerHelper'
 import { lineStringsFromStationPois } from '@/helpers/stationHelper'
+import { getPoiFeaturesOfStations } from '@/services/station'
 
 const vcsApp = new VcsApp()
 provide('vcsApp', vcsApp)
@@ -94,6 +92,8 @@ onMounted(async () => {
   vcsApp.maps.eventHandler.addPersistentInteraction(
     new SelectStationInteraction(vcsApp, RENNES_LAYER.trambusStops)
   )
+
+  mapStore.vcsApp = vcsApp
 })
 
 // The following code is needed to cleanup resources we created
@@ -245,16 +245,7 @@ async function updatePOIArrow() {
   )
 
   // Get POI that related to the selected station (note: not all station has a POIs)
-  let poiLayer: GeoJSONLayer = vcsApp.layers.getByKey(
-    RENNES_LAYER.poi
-  ) as GeoJSONLayer
-  await poiLayer.fetchData()
-
-  const selectedPoiFeatures = await filterFeaturesByAttribute(
-    'station_nom',
-    stationName,
-    poiLayer
-  )
+  const selectedPoiFeatures = await getPoiFeaturesOfStations(stationName)
 
   // Create line string from station to POI
   const lineStrings = await lineStringsFromStationPois(

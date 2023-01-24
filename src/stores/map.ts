@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
+import { VcsApp } from '@vcmap/core'
 
 export const useMapStore = defineStore('map', () => {
   // Map state
@@ -9,6 +10,8 @@ export const useMapStore = defineStore('map', () => {
   // Layers are handled in layers.ts (TODO: probably merge it here?)
 
   const eventRandomId: Ref<number> = ref(0)
+
+  const vcsApp: VcsApp = new VcsApp()
 
   function triggerEvent() {
     eventRandomId.value = Math.random()
@@ -38,6 +41,7 @@ export const useMapStore = defineStore('map', () => {
     eventRandomId,
     viewPoint,
     activeMap,
+    vcsApp,
     is3D,
     toggle3D,
     updateViewpoint,

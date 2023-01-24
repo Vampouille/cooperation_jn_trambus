@@ -3,6 +3,10 @@ import type { StationModel } from '@/model/stations.model'
 import { LIST_BUS } from '@/model/bus.model'
 import type { FeatureLike } from 'ol/Feature'
 import { useStationsStore } from '@/stores/stations'
+import { useMapStore } from '@/stores/map'
+import type { GeoJSONLayer } from '@vcmap/core'
+import { RENNES_LAYER } from '@/stores/layers'
+import { filterFeaturesByAttribute } from '@/helpers/layerHelper'
 
 export function sortStationsByOrder(
   stations: StationModel[],
@@ -110,4 +114,19 @@ export function getLinesNumberFromLiCode(li_code: string): LineNumber[] {
 export function isStationLabelDisplayed(stationName: string): boolean {
   const stationsStore = useStationsStore()
   return stationsStore.stationIsInStationsToDisplay(stationName)
+}
+
+export async function getPoiFeaturesOfStations(stationName: string) {
+  const mapStore = useMapStore()
+  const poiLayer: GeoJSONLayer = mapStore.vcsApp.layers.getByKey(
+    RENNES_LAYER.poi
+  ) as GeoJSONLayer
+  await poiLayer.fetchData()
+
+  const selectedPoiFeatures = await filterFeaturesByAttribute(
+    'station_nom',
+    stationName,
+    poiLayer
+  )
+  return selectedPoiFeatures
 }
