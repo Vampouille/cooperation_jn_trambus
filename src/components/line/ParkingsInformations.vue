@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import type { Ref } from 'vue'
 import type { PropType } from 'vue'
 import UiParkingInformation from '@/components/ui/UiParkingInformation.vue'
 import type { ParkingModel } from '@/model/parkings.model'
-import { fetchParkingsByLine } from '@/services/parking'
+import { getParkingFeaturesOfLine } from '@/services/parking'
 import type { LineNumber } from '@/model/lines.model'
 
 const props = defineProps({
@@ -13,19 +14,27 @@ const props = defineProps({
   },
 })
 
-const state = reactive({
-  parkings: null as null | ParkingModel[],
-})
+const parkings: Ref<ParkingModel[]> = ref([])
 
 onMounted(async () => {
-  state.parkings = await fetchParkingsByLine(props.line)
+  const parkingFeatures = await getParkingFeaturesOfLine(props.line)
+  parkingFeatures.forEach((feature) => {
+    parkings.value.push({
+      id: feature.get('id'),
+      arret_nom: feature.get('arret_nom'),
+      li_code: feature.get('li_code'),
+      nom: feature.get('nom'),
+      nb_max_places: feature.get('nb_max_places'),
+      nb_min_places: feature.get('nb_min_places'),
+    })
+  })
 })
 </script>
 
 <template>
   <div>
     <UiParkingInformation
-      v-for="parking in state.parkings"
+      v-for="parking in parkings"
       :key="parking.id"
       :name="parking.nom"
       :station="parking.arret_nom"
